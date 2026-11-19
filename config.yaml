@@ -1,0 +1,104 @@
+# =====================================================================================
+# config.yaml — Espacialização da RAIS (São José dos Campos)
+# Caminhos RELATIVOS à raiz do projeto (a pasta onde este arquivo está).
+# Parâmetros de método: mude aqui, não no código. Registre a mudança em docs/decisoes.md.
+# =====================================================================================
+
+projeto:
+  nome: espacializacao_rais
+  descricao: Espacializar os estabelecimentos da RAIS (2017-2025) de São José dos Campos pelo CEP
+  municipio_ibge6: "354990"          # código IBGE de 6 dígitos (usado pela RAIS)
+  municipio_ibge7: "3549904"         # código IBGE de 7 dígitos (usado pelo CNEFE)
+  prefixo_cep: "12"                  # CEPs do município começam com 12
+  crs_metrico: "EPSG:31983"          # SIRGAS 2000 / UTM 23S (metros) - CRS do Geosanja
+  crs_graus: "EPSG:4674"             # SIRGAS 2000 (graus) - CRS da latitude/longitude do CNEFE e do CSV de grandes usuários
+
+pastas:                              # padrão do manual; não mude sem motivo
+  brutos: 01_dados_brutos
+  editados: 02_dados_editados
+  backup: 02_dados_editados/_backup
+  processamento: 03_processamento
+  logs: 03_processamento/logs
+  entrega: 04_entrega
+
+# ------------------------------------------------------------------ dados brutos (só leitura)
+brutos:
+  rais: 01_dados_brutos/RAIS                       # uma subpasta por ano (2017 ... 2025), arquivos como vêm do FTP
+  correios:                                        # exportação de logradouros dos Correios (renomeada; nome original em docs/fontes.md)
+    arquivo: 01_dados_brutos/Correios/correios_logradouros_sjc.xlsx
+  geosanja:                                        # malha de logradouros do Geosanja
+    arquivo: 01_dados_brutos/Geosanja/logradouros.gpkg
+    camada: logradouros
+  cnefe:                                           # CNEFE (IBGE, Censo 2022), recorte do município
+    arquivo: 01_dados_brutos/CNEFE/3549904_SAO_JOSE_DOS_CAMPOS.csv
+
+# ------------------------------------------------------------------ dados editados à mão (prioridade sobre o bruto)
+editados:
+  logradouros_cep:                                 # BASE OFICIAL de logradouros com CEP (você corrige a coluna 'cep')
+    arquivo: 02_dados_editados/logradouros_cep.gpkg
+    camada: logradouros_cep
+    gerado_por: 03_base_logradouros_cep
+  grandes_usuarios:                                # CEPs de grande usuário com coordenada (você confere/preenche lat/lon)
+    arquivo: 02_dados_editados/grande_usuario_ceps.csv
+    gerado_por: 04_grandes_usuarios
+
+# ------------------------------------------------------------------ arquivos intermediários usados por etapas seguintes
+processamento:
+  rais_consolidada: 03_processamento/01_consolidar_rais/rais_estab_sjc_consolidado.parquet
+  ponte: 03_processamento/02_parear_cep_logradouro/ponte_cep_logradouro.parquet
+  orfaos: 03_processamento/02_parear_cep_logradouro/residuo_ceps_orfaos.csv
+  pareamento:
+    arquivo: 03_processamento/02_parear_cep_logradouro/logradouros_status_pareamento.gpkg
+    camada: logradouros_cep
+  diagnostico: 03_processamento/05_classificar_rais_cep/diagnostico_cep.parquet
+  rais_classificada: 03_processamento/05_classificar_rais_cep/rais_estab_sjc_classificada.parquet
+  ceps_espacializados: 03_processamento/05_classificar_rais_cep/ceps_espacializados.gpkg
+
+# ------------------------------------------------------------------ produtos finais
+entrega:
+  rais_pontos:
+    arquivo: 04_entrega/rais_estab_pontos.gpkg
+    camada: rais_pontos
+  ceps_espacializados: 04_entrega/ceps_espacializados.gpkg
+
+# ------------------------------------------------------------------ parâmetros de método (ver docs/decisoes.md)
+parametros:
+  consolidacao:                      # 01
+    tamanho_bloco: 500000            # linhas lidas por vez dos arquivos nacionais
+    limite_variacao_alerta: 0.20     # alerta se o nº de estabelecimentos variar mais que isso entre anos
+  pareamento:                        # 02
+    limiar_bairro: 85
+    limiar_fuzzy: 90
+    limiar_fuzzy_sem_bairro: 93
+    min_len_fuzzy: 6
+  base_logradouros:                  # 03
+    limiar_sugestao: 80              # similaridade mínima do nome para sugerir CEP órfão a via sem CEP
+  grandes_usuarios:                  # 04
+    sufixo_especial_min: 900         # CEP com sufixo >= isso = grande usuário
+    pausa_s: 0.5                     # pausa entre consultas às APIs
+    timeout_s: 15
+    tentativas: 3
+    margem_graus: 0.02               # folga ao redor da área do CNEFE para aceitar coordenada da API
+    ceps_substituidos:               # CEP antigo (RAIS) -> CEP novo (confirmado no Busca CEP). A coluna cep_novo do CSV prevalece
+      "12237970": "12238972"
+      "12237971": "12238971"
+      "12237974": "12238973"
+      "12211970": "12212970"
+  classificacao:                     # 05
+    limite_extensao_m: 1000          # CEP com extensão acima disso vira classe B
+    limite_logradouros: 1            # CEP com mais logradouros que isso vira classe B
+    ano_referencia: null             # null = ano mais recente da RAIS
+  pontos:                            # 06
+    colunas_excluir: [fonte_arquivo] # colunas da RAIS que não vão para a camada de pontos
+    limiar_sugestao: 70              # similaridade mínima do nome para sugerir via a CEP órfão (Excel de pendências)
+    n_sugestoes: 3
+  cnefe:                             # 07
+    dist_perto_m: 60                 # ponto do CNEFE a até X m da linha = "na linha"
+    dist_busca_m: 100                # distância máxima para ligar um ponto ao segmento mais próximo
+    mediana_suspeita_m: 200          # CEP associado é SUSPEITO se a mediana da distância dos seus pontos passar disso
+    min_pontos: 3                    # mínimo de locais (coordenadas distintas) para decidir
+    min_participacao: 0.6            # participação mínima do CEP/segmento vencedor na votação
+
+# ------------------------------------------------------------------ execução (executar_tudo.py)
+execucao:
+  ciclo: ["05", "06", "07"]          # etapas a rodar depois de corrigir a base de logradouros

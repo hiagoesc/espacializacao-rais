@@ -1,0 +1,19 @@
+# Ambiente Anaconda do projeto. Criar: conda env create -f environment.yml | Ativar: conda activate espacializacao_rais
+name: espacializacao_rais
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - geopandas
+  - pyogrio
+  - shapely>=2.0
+  - pyproj
+  - pyarrow
+  - openpyxl
+  - pyyaml
+  - rapidfuzz
+  - requests
+  - jupyter
+  - nbconvert

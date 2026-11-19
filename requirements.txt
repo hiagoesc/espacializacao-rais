@@ -1,0 +1,14 @@
+# Ambiente Python puro (pip). Instalar: pip install -r requirements.txt
+pandas
+numpy
+geopandas
+pyogrio
+shapely>=2.0
+pyproj
+pyarrow
+openpyxl
+pyyaml
+rapidfuzz
+requests
+jupyter
+nbconvert

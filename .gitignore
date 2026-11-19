@@ -1,0 +1,27 @@
+# --- Dados e produtos: nunca vão para o Git ---
+01_dados_brutos/
+02_dados_editados/
+03_processamento/
+04_entrega/
+*.gpkg
+*.gpkg-wal
+*.gpkg-shm
+*.parquet
+*.xlsx
+*.xls
+*.csv
+*.qgz
+*.qgs
+*.zip
+*.7z
+*.COMT
+*.txt
+!requirements.txt
+
+# --- Python / Jupyter ---
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# --- Segredos ---
+.env
