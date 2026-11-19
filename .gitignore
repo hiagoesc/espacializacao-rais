@@ -1,8 +1,13 @@
 # --- Dados e produtos: nunca vão para o Git ---
-01_dados_brutos/
-02_dados_editados/
-03_processamento/
-04_entrega/
+# Pastas de dados: ignora o conteúdo, mas mantém o LEIAME.md (a pasta existe ao clonar)
+01_dados_brutos/*
+02_dados_editados/*
+03_processamento/*
+04_entrega/*
+!01_dados_brutos/LEIAME.md
+!02_dados_editados/LEIAME.md
+!03_processamento/LEIAME.md
+!04_entrega/LEIAME.md
 *.gpkg
 *.gpkg-wal
 *.gpkg-shm
