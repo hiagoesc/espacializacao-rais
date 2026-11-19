@@ -15,13 +15,13 @@ Espacializar os estabelecimentos da RAIS (2017–2025) de São José dos Campos 
   - 1868 segmentos para revisar no QGIS (preencher 1181 | conferir 687).
 - Maiores suspeitos (por vínculos): 12224300 (Dutra), 12242000 e 12242840 (Av. São João), 12227000 (Faria Lima), 12247000, 12244000, 12220000 (JK), 12245010, 12237540, 12229380. Hipótese (não verificada no mapa): (a) via dos pontos = via da base, distância 200 m–1 km → CEP aplicado só a parte da avenida; (b) via dos pontos "Sem nome", 4–7 km → CEP em segmento errado/sem nome.
 - Nenhuma sugestão da etapa 07 foi aplicada à base ainda.
+- Repositório publicado (público): https://github.com/hiagoesc/espacializacao-rais (branch `main`, 28 arquivos, só código e docs). Atualizar com `git add .`, `git status`, `git commit -m ...`, `git push`.
 
 ## Pendências
 - [ ] Revisar `sugestoes_segmentos` e `auditoria_segmentos` no QGIS (começar por `status_sugestao = sugerido` e `acao = preencher`; suspeitos com mais vínculos).
 - [ ] Copiar os CEPs aceitos para a base `02_dados_editados/logradouros_cep.gpkg` (`cep_origem = manual`, `cep_conferido = Sim`) e rodar `python executar_tudo.py --ciclo`.
 - [ ] Rodovia Presidente Dutra: 33 trechos ambíguos com 9 CEPs por faixa de km; sem pontos no CNEFE → manual (opção: referência por km).
 - [ ] 9 CEPs de grande usuário sem coordenada: preencher lat/lon (`fonte_coord = manual`) ou `cep_novo` no CSV.
-- [ ] Publicar o repositório no GitHub (pasta do projeto; só `scripts/` e `docs/` + arquivos da raiz entram).
 - [ ] Opcional: etapa 04 faz backup do CSV a cada execução enquanto houver CEPs não encontrados.
 
 ## Próxima ação
