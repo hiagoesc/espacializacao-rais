@@ -218,11 +218,11 @@ Copiado em cada projeto (o repositório é autossuficiente). Ao melhorar uma fun
 | Módulo | Funções principais |
 |---|---|
 | `config.py` | `carregar()` → objeto com `caminho`, `camada`, `parametro`, `projeto`, `pasta`, `pasta_etapa`, `raiz` (seção 5) |
-| `registro.py` | `iniciar_log(nome_etapa, cfg)` → logger que escreve na tela e em `03_processamento/logs/` |
+| `registro.py` | `iniciar_log(nome_etapa, cfg)` → logger que escreve na tela e em `03_processamento/logs/`; `formatar_tempo(segundos)` |
 | `validacao.py` | `validar_tabela(nome, df, chave, obrigatorias, linhas_entrada)` |
 | `texto.py` | `normalizar(serie)`, `tirar_tipo(texto)`, dicionários de abreviações/títulos |
 | `geo.py` | `para_gpkg` (tipos compatíveis com GeoPackage), `checar_crs`, `distancia_metros` |
-| `fontes.py` | `caminho_editado(cfg, chave, obrigatorio=True)` (usa o editado ou para indicando o notebook que o cria), `existe_editado`, `backup` |
+| `fontes.py` | `caminho_editado(cfg, chave, obrigatorio=True)` (usa o editado ou para indicando o notebook que o cria), `existe_editado`, `backup`; `ler_processamento(cfg, chave)` / `gravar_processamento(cfg, chave, df)` (intermediários em Parquet de `processamento.<chave>`; a leitura para indicando o notebook que gera o arquivo) |
 | `planilha.py` | `formatar_excel(escritor, aba)` (openpyxl; para planilhas muito grandes, usar o xlsxwriter direto no notebook) |
 | `cache.py` | leitura de bases pesadas com cache em `03_processamento`: só relê o bruto quando arquivo de origem, parâmetro ou versão da lógica mudam |
 
