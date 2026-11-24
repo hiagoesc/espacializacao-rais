@@ -8,7 +8,7 @@ Segue o **padrão de projetos** (`docs/manual_padrao_projetos.md`).
 
 | Nº | Notebook | O que faz | Lê | Grava |
 |---|---|---|---|---|
-| 01 | `01_consolidar_rais` | Lê os 9 arquivos nacionais da RAIS, filtra o município e padroniza | `01_dados_brutos/RAIS` | `03_processamento/01_…` |
+| 01 | `01_consolidar_rais` | Lê os 9 arquivos nacionais da RAIS, filtra o município e padroniza | `01_dados_brutos/rais` | `03_processamento/01_…` |
 | 02 | `02_parear_cep_logradouro` | Pareia CEP (Correios) × segmento (Geosanja) em cascata: exato → iniciais → fuzzy | Correios, Geosanja | `03_processamento/02_…` |
 | 03 | `03_base_logradouros_cep` | Cria a **base oficial editável** de logradouros com CEP (só se ainda não existir) | Geosanja + 02 | **`02_dados_editados/logradouros_cep.gpkg`** |
 | 04 | `04_grandes_usuarios` | Localiza CEPs de grande usuário (sufixo ≥ 900) via ViaCEP + CNEFE | 01 + CNEFE + internet | **`02_dados_editados/grande_usuario_ceps.csv`** |

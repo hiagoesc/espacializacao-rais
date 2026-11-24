@@ -1,17 +1,17 @@
 # =====================================================================================
-# config.yaml — Espacialização da RAIS (São José dos Campos)
+# config.yaml — Espacialização da rais (São José dos Campos)
 # Caminhos RELATIVOS à raiz do projeto (a pasta onde este arquivo está).
 # Parâmetros de método: mude aqui, não no código. Registre a mudança em docs/decisoes.md.
 # =====================================================================================
 
 projeto:
   nome: espacializacao_rais
-  descricao: Espacializar os estabelecimentos da RAIS (2017-2025) de São José dos Campos pelo CEP
-  municipio_ibge6: "354990"          # código IBGE de 6 dígitos (usado pela RAIS)
-  municipio_ibge7: "3549904"         # código IBGE de 7 dígitos (usado pelo CNEFE)
+  descricao: Espacializar os estabelecimentos da rais (2017-2025) de São José dos Campos pelo CEP
+  municipio_ibge6: "354990"          # código IBGE de 6 dígitos (usado pela rais)
+  municipio_ibge7: "3549904"         # código IBGE de 7 dígitos (usado pelo cnefe)
   prefixo_cep: "12"                  # CEPs do município começam com 12
-  crs_metrico: "EPSG:31983"          # SIRGAS 2000 / UTM 23S (metros) - CRS do Geosanja
-  crs_graus: "EPSG:4674"             # SIRGAS 2000 (graus) - CRS da latitude/longitude do CNEFE e do CSV de grandes usuários
+  crs_metrico: "EPSG:31983"          # SIRGAS 2000 / UTM 23S (metros) - CRS do geosanja
+  crs_graus: "EPSG:4674"             # SIRGAS 2000 (graus) - CRS da latitude/longitude do cnefe e do CSV de grandes usuários
 
 pastas:                              # padrão do manual; não mude sem motivo
   brutos: 01_dados_brutos
@@ -23,14 +23,14 @@ pastas:                              # padrão do manual; não mude sem motivo
 
 # ------------------------------------------------------------------ dados brutos (só leitura)
 brutos:
-  rais: 01_dados_brutos/RAIS                       # uma subpasta por ano (2017 ... 2025), arquivos como vêm do FTP
-  correios:                                        # exportação de logradouros dos Correios (renomeada; nome original em docs/fontes.md)
-    arquivo: 01_dados_brutos/Correios/correios_logradouros_sjc.xlsx
-  geosanja:                                        # malha de logradouros do Geosanja
-    arquivo: 01_dados_brutos/Geosanja/logradouros.gpkg
+  rais: 01_dados_brutos/rais                       # uma subpasta por ano (2017 ... 2025), arquivos como vêm do FTP
+  correios:                                        # exportação de logradouros dos correios (renomeada; nome original em docs/fontes.md)
+    arquivo: 01_dados_brutos/correios/correios_logradouros_sjc.xlsx
+  geosanja:                                        # malha de logradouros do geosanja
+    arquivo: 01_dados_brutos/geosanja/logradouros.gpkg
     camada: logradouros
-  cnefe:                                           # CNEFE (IBGE, Censo 2022), recorte do município
-    arquivo: 01_dados_brutos/CNEFE/3549904_SAO_JOSE_DOS_CAMPOS.csv
+  cnefe:                                           # cnefe (IBGE, Censo 2022), recorte do município
+    arquivo: 01_dados_brutos/cnefe/3549904_SAO_JOSE_DOS_CAMPOS.csv
 
 # ------------------------------------------------------------------ dados editados à mão (prioridade sobre o bruto)
 editados:
@@ -78,8 +78,8 @@ parametros:
     pausa_s: 0.5                     # pausa entre consultas às APIs
     timeout_s: 15
     tentativas: 3
-    margem_graus: 0.02               # folga ao redor da área do CNEFE para aceitar coordenada da API
-    ceps_substituidos:               # CEP antigo (RAIS) -> CEP novo (confirmado no Busca CEP). A coluna cep_novo do CSV prevalece
+    margem_graus: 0.02               # folga ao redor da área do cnefe para aceitar coordenada da API
+    ceps_substituidos:               # CEP antigo (rais) -> CEP novo (confirmado no Busca CEP). A coluna cep_novo do CSV prevalece
       "12237970": "12238972"
       "12237971": "12238971"
       "12237974": "12238973"
@@ -87,13 +87,13 @@ parametros:
   classificacao:                     # 05
     limite_extensao_m: 1000          # CEP com extensão acima disso vira classe B
     limite_logradouros: 1            # CEP com mais logradouros que isso vira classe B
-    ano_referencia: null             # null = ano mais recente da RAIS
+    ano_referencia: null             # null = ano mais recente da rais
   pontos:                            # 06
-    colunas_excluir: [fonte_arquivo] # colunas da RAIS que não vão para a camada de pontos
+    colunas_excluir: [fonte_arquivo] # colunas da rais que não vão para a camada de pontos
     limiar_sugestao: 70              # similaridade mínima do nome para sugerir via a CEP órfão (Excel de pendências)
     n_sugestoes: 3
   cnefe:                             # 07
-    dist_perto_m: 60                 # ponto do CNEFE a até X m da linha = "na linha"
+    dist_perto_m: 60                 # ponto do cnefe a até X m da linha = "na linha"
     dist_busca_m: 100                # distância máxima para ligar um ponto ao segmento mais próximo
     mediana_suspeita_m: 200          # CEP associado é SUSPEITO se a mediana da distância dos seus pontos passar disso
     min_pontos: 3                    # mínimo de locais (coordenadas distintas) para decidir

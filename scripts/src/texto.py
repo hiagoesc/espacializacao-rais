@@ -8,7 +8,7 @@ import unicodedata
 
 import pandas as pd
 
-# --- Tipos de logradouro dos Correios (os de duas palavras primeiro) e dicionários de padronização ---
+# --- Tipos de logradouro dos correios (os de duas palavras primeiro) e dicionários de padronização ---
 TIPOS_CORREIOS = ["AREA VERDE", "AREA RURAL", "COMUNIDADE URBANA", "RUA", "AVENIDA", "PRACA", "TRAVESSA",
                   "ALAMEDA", "ESTRADA", "VIELA", "RODOVIA", "COMUNIDADE", "AREA", "LARGO", "PONTE", "ACESSO",
                   "BULEVAR", "LADEIRA", "LOTEAMENTO", "MARGINAL", "PASSARELA", "ROTATORIA", "TREVO", "VIA", "VILA"]

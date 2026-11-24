@@ -1,6 +1,6 @@
 # Manual do Padrão de Projetos de Análise de Dados
 
-Versão 1.1 — 19/11/2026
+Versão 1.2 — 24/11/2026
 
 Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urbanos, RAIS, registro de imóveis, Cadastro Único etc.). Serve para **criar projetos novos** e para **converter projetos existentes**. Inclua este arquivo (e o `docs/handoff/STATUS.md` do projeto) no início de cada conversa com o Claude.
 
@@ -21,6 +21,8 @@ Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urb
 
 ## 2. Estrutura de pastas
 
+Todos os projetos ficam em `D:\Users\hiago.cardoso\Documents\projetos_analise_de_dados\<nome_projeto>\`.
+
 ```
 <nome_projeto>/                      ← raiz = repositório Git
 ├── README.md                        ← objetivo, fluxo, como rodar
@@ -31,7 +33,7 @@ Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urb
 ├── executar_tudo.py                 ← roda os notebooks em ordem
 │
 ├── 01_dados_brutos/                 ← fontes originais (só leitura)            [fora do Git]
-│   └── <fonte>/                     ← uma subpasta por fonte: Geosanja/, Correios/, CNEFE/...
+│   └── <fonte>/                     ← uma subpasta por fonte: geosanja/, correios/, cnefe/...
 ├── 02_dados_editados/               ← curadoria manual (nunca sobrescrita)       [fora do Git]
 │   └── _backup/                     ← cópias datadas automáticas
 ├── 03_processamento/                ← intermediários regeneráveis              [fora do Git]
@@ -50,9 +52,11 @@ Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urb
 │       ├── registro.py      ← logging (tela + arquivo), padrão "..." / "!"
 │       ├── validacao.py     ← nulos, duplicados, perda de registros
 │       ├── texto.py         ← normalização de nomes (acentos, abreviações, títulos)
-│       ├── geo.py           ← leitura/gravação GPKG, tipos, CRS, backups
+│       ├── geo.py           ← tipos compatíveis com GPKG, CRS, distâncias
 │       ├── fontes.py        ← leitura com prioridade editado → bruto, backups
-│       └── planilha.py      ← formatação de abas do Excel
+│       ├── planilha.py      ← formatação de abas do Excel
+│       ├── cache.py         ← cache de leitura de bases pesadas (Parquet + manifesto)
+│       └── <modulo_do_projeto>.py             ← funções só deste projeto (não copiar para outros)
 │
 └── docs/
     ├── manual_padrao_projetos.md    ← cópia deste manual
@@ -74,6 +78,8 @@ Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urb
 
 Um projeto sem curadoria manual mantém `02_dados_editados` vazia; a estrutura é sempre a mesma.
 
+**Fonte em banco de dados** (ex.: PostGIS da Prefeitura): o notebook não conecta no banco. A camada é exportada pelo QGIS (GeoPackage, todas as feições, CRS original) para `01_dados_brutos/<fonte>/`, e a data da exportação vai para `docs/fontes.md`. Para atualizar, exporta-se de novo com o mesmo nome.
+
 ---
 
 ## 3. Nomes
@@ -82,7 +88,7 @@ Um projeto sem curadoria manual mantém `02_dados_editados` vazia; a estrutura �
 - **Notebooks do fluxo:** `NN_verbo_objeto.ipynb` (`03_base_logradouros_cep.ipynb`). O número é a ordem de execução.
 - **Subpasta em `03_processamento`:** mesmo nome do notebook que a gera (`03_processamento/05_classificar_rais_cep/`).
 - **Camadas GPKG:** nome da camada = nome do arquivo, quando houver uma só.
-- **Backups:** `<nome>_AAAAMMDD_HHMM.<ext>` em `_backup/`.
+- **Backups:** `<nome>_AAAAMMDD_HHMMSS.<ext>` em `_backup/`.
 - **Logs:** `AAAA-MM-DD_HHMM_<notebook>.log`.
 
 ---
@@ -113,18 +119,23 @@ Um por projeto, na raiz. Caminhos **relativos à raiz** (nunca `D:\Users\...` no
 ```yaml
 projeto:
   nome: espacializacao_rais
-  municipio_ibge: "3549904"
+  municipio_ibge7: "3549904"
   crs_metrico: "EPSG:31983"      # SIRGAS 2000 / UTM 23S
+  crs_graus: "EPSG:4674"         # SIRGAS 2000 (graus)
 
 pastas:                          # padrão; só mude se o projeto for diferente
   brutos: 01_dados_brutos
   editados: 02_dados_editados
+  backup: 02_dados_editados/_backup
   processamento: 03_processamento
+  logs: 03_processamento/logs
   entrega: 04_entrega
 
 brutos:                          # arquivos de entrada originais
-  geosanja: 01_dados_brutos/Geosanja/logradouros.gpkg
-  cnefe: 01_dados_brutos/CNEFE/3549904_SAO_JOSE_DOS_CAMPOS.csv
+  geosanja:
+    arquivo: 01_dados_brutos/geosanja/logradouros.gpkg
+    camada: logradouros
+  cnefe: 01_dados_brutos/cnefe/3549904_SAO_JOSE_DOS_CAMPOS.csv
 
 editados:                        # arquivos mantidos à mão (prioridade sobre o bruto)
   logradouros_cep:
@@ -132,15 +143,32 @@ editados:                        # arquivos mantidos à mão (prioridade sobre o
     camada: logradouros_cep
     gerado_por: 03_base_logradouros_cep
 
-parametros:                      # regras do método (ver docs/decisoes.md)
-  limite_extensao_m: 1000
-  limiar_fuzzy: 90
+processamento:                   # intermediários usados por etapas seguintes
+  rais_consolidada: 03_processamento/01_consolidar_rais/rais_estab_sjc_consolidado.parquet
+
+entrega:                         # produtos finais
+  rais_pontos:
+    arquivo: 04_entrega/rais_estab_pontos.gpkg
+    camada: rais_pontos
+
+parametros:                      # regras do método, agrupadas por etapa (ver docs/decisoes.md)
+  classificacao:                 # 05
+    limite_extensao_m: 1000
+  pareamento:                    # 02
+    limiar_fuzzy: 90
 
 execucao:
   ciclo: ["05", "06"]            # etapas a rodar após uma rodada de correção manual
 ```
 
-Leitura nos notebooks: `cfg = config.carregar()` → `cfg.caminho("brutos.geosanja")` devolve o caminho absoluto, montado a partir da raiz encontrada automaticamente.
+Leitura nos notebooks: `cfg = config.carregar()` (acha a raiz subindo pelas pastas até o `config.yaml`) e depois:
+
+- `cfg.caminho("brutos.geosanja")` → caminho absoluto (aceita texto ou dicionário com `arquivo`);
+- `cfg.camada("brutos.geosanja")` → nome da camada do GeoPackage (ou `None`);
+- `cfg.parametro("classificacao.limite_extensao_m")` → valor em `parametros` (aceita um valor padrão);
+- `cfg.projeto("crs_metrico")` → valor da seção `projeto`;
+- `cfg.pasta("logs")` → pasta padrão, criada se não existir;
+- `cfg.pasta_etapa("05_classificar_rais_cep")` → subpasta da etapa em `03_processamento`, criada se não existir.
 
 ---
 
@@ -178,6 +206,7 @@ python executar_tudo.py                # tudo, do 01 ao último
 python executar_tudo.py --de 05        # do 05 em diante
 python executar_tudo.py --de 02 --ate 04
 python executar_tudo.py --ciclo        # só as etapas de execucao.ciclo do config.yaml
+python executar_tudo.py --listar       # só mostra as etapas encontradas
 ```
 
 ---
@@ -188,19 +217,22 @@ Copiado em cada projeto (o repositório é autossuficiente). Ao melhorar uma fun
 
 | Módulo | Funções principais |
 |---|---|
-| `config.py` | `carregar()` → objeto com `caminho(chave)`, `parametro(chave)`, `raiz` |
-| `registro.py` | `iniciar_log(nome_notebook)` → logger que escreve na tela e em `03_processamento/logs/` |
+| `config.py` | `carregar()` → objeto com `caminho`, `camada`, `parametro`, `projeto`, `pasta`, `pasta_etapa`, `raiz` (seção 5) |
+| `registro.py` | `iniciar_log(nome_etapa, cfg)` → logger que escreve na tela e em `03_processamento/logs/` |
 | `validacao.py` | `validar_tabela(nome, df, chave, obrigatorias, linhas_entrada)` |
 | `texto.py` | `normalizar(serie)`, `tirar_tipo(texto)`, dicionários de abreviações/títulos |
-| `geo.py` | `para_gpkg` (tipos compatíveis com GeoPackage), `checar_crs` |
-| `fontes.py` | `caminho_editado(cfg, chave)` (usa o editado ou para indicando o notebook que o cria), `existe_editado`, `backup` |
-| `planilha.py` | `formatar_excel(escritor, aba)` |
+| `geo.py` | `para_gpkg` (tipos compatíveis com GeoPackage), `checar_crs`, `distancia_metros` |
+| `fontes.py` | `caminho_editado(cfg, chave, obrigatorio=True)` (usa o editado ou para indicando o notebook que o cria), `existe_editado`, `backup` |
+| `planilha.py` | `formatar_excel(escritor, aba)` (openpyxl; para planilhas muito grandes, usar o xlsxwriter direto no notebook) |
+| `cache.py` | leitura de bases pesadas com cache em `03_processamento`: só relê o bruto quando arquivo de origem, parâmetro ou versão da lógica mudam |
+
+**Módulos só de um projeto** (ex.: `enderecos.py` e `cascata.py` na espacialização de CNPJs) também ficam em `src/`, com nome que não se confunda com os comuns, e **não são copiados** para outros projetos. Se uma função dele passar a servir a vários projetos, ela é levada para o módulo comum correspondente.
 
 ---
 
 ## 8. Logs
 
-- Cada notebook chama `iniciar_log("<NN_nome>")` na primeira célula.
+- Cada notebook chama `iniciar_log("<NN_nome>", cfg)` na primeira célula.
 - O mesmo texto vai para a tela e para `03_processamento/logs/AAAA-MM-DD_HHMM_<NN_nome>.log`.
 - Formato: `HH:MM:SS | NÍVEL | mensagem`.
 - `WARNING` = algo a conferir; `ERROR` = resultado não confiável (a etapa deve parar ou avisar claramente).

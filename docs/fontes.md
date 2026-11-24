@@ -4,7 +4,7 @@ Todos os arquivos brutos ficam em `01_dados_brutos/` (fora do Git) e **não são
 
 ## RAIS — Estabelecimentos (PDET/MTE)
 
-- **Pasta:** `01_dados_brutos/RAIS/<ano>/` (2017 a 2025), arquivos como vêm do FTP, já extraídos do `.7z`.
+- **Pasta:** `../01_dados_brutos/rais` (2017 a 2025), arquivos como vêm do FTP, já extraídos do `.7z`.
 - **Origem:** `ftp://ftp.mtps.gov.br/pdet/microdados/RAIS/<ano>/`
 - **Arquivos por ano:**
 
@@ -20,20 +20,20 @@ Todos os arquivos brutos ficam em `01_dados_brutos/` (fora do Git) e **não são
 
 ## Correios — Logradouros de São José dos Campos
 
-- **Arquivo:** `01_dados_brutos/Correios/correios_logradouros_sjc.xlsx`
+- **Arquivo:** `../01_dados_brutos/correios`
 - **Nome original:** `exportar-logradouros-SP-São José dos Campos-01_10_2026-07_54_39.xlsx` (exportação de 01/10/2026). Renomeado para seguir o padrão (sem espaço e sem acento).
 - **Conteúdo:** CEP, logradouro, bairro, situação (5.330 linhas na exportação usada).
 
 ## Geosanja — Logradouros
 
-- **Arquivo:** `01_dados_brutos/Geosanja/logradouros.gpkg`, camada `logradouros`.
+- **Arquivo:** `../01_dados_brutos/geosanja`, camada `logradouros`.
 - **Origem:** tabela de logradouros do banco PostGIS da Prefeitura, exportada para GeoPackage.
 - **CRS:** EPSG:31983 (SIRGAS 2000 / UTM 23S). 9.435 feições (MultiLineString).
 - **Campos:** `id` (chave), `id_0`, `oms_id`, `nome`, `tipo`, `diploma`, `numero`, `ano`, `loteamento`, `nome_ante`, `shape_leng`.
 
 ## CNEFE — Cadastro Nacional de Endereços para Fins Estatísticos (IBGE, Censo 2022)
 
-- **Arquivo:** `01_dados_brutos/CNEFE/3549904_SAO_JOSE_DOS_CAMPOS.csv` (nome original do IBGE).
+- **Arquivo:** `../01_dados_brutos/cnefe` (nome original do IBGE).
 - **Separador:** `;`. Coordenadas em graus decimais com ponto.
 - **CRS assumido:** EPSG:4674 (SIRGAS 2000, graus) — confirmar na documentação do IBGE.
 - **Colunas usadas:** `CEP`, `NOM_TIPO_SEGLOGR`, `NOM_TITULO_SEGLOGR`, `NOM_SEGLOGR`, `NUM_ENDERECO`, `DSC_MODIFICADOR`, `LATITUDE`, `LONGITUDE`, `DSC_ESTABELECIMENTO`.
