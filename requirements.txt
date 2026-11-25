@@ -7,6 +7,7 @@ shapely>=2.0
 pyproj
 pyarrow
 openpyxl
+xlsxwriter
 pyyaml
 rapidfuzz
 requests

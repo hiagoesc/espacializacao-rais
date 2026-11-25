@@ -1,0 +1,9 @@
+# Sessão 2026-11-25 — localização pelo endereço, cache das APIs e entrega final
+
+- **Problema:** o ViaCEP bloqueou o IP após ~300 consultas e a execução cancelada perdeu tudo. Decisão: toda consulta externa (ViaCEP, BrasilAPI, Nominatim) vai para cache em parquet em `03_processamento/04_localizar_ceps/`, gravado a cada resposta; falha de rede não entra no cache; após 3 falhas seguidas o serviço é desligado na execução, a etapa avisa que não consultou tudo e a próxima rodada retoma. Grande usuário com pontos no CNEFE não consulta API.
+- **CEP de outro município** (prefixo `12` cobre o Vale do Paraíba): a cidade devolvida pela API manda; vira `outra_cidade`, sem ponto. Os 387 CEPs que haviam ganhado ponto dentro de São José por nome de rua ou bairro foram corrigidos.
+- **CEPs 000** passam a ser alvo da 04. CEP geral 000 com pontos no CNEFE (ex.: 12249000, São Francisco Xavier) é classe P, confiança baixa se espalhado.
+- **CSV manual da 04:** endereço manual, `cep_novo` (um CEP = troca; vários separados por `|` = desmembrado), `nao_localizavel`, `outra_cidade`. Leitura tolerante ao Excel pt-BR (cp850; `-23.220.157` → `-23.220157`).
+- **Repositório:** nome correto `espacializacao_rais` (renomeado no GitHub; `git remote set-url` feito).
+- **Entrega (decidida com o Hiago):** padrão da entrega de CNPJs. Todos os registros mantidos; sem ponto = sem geometria e sem `lat`/`lon`; `situacao_espacial` só `espacializado`/`nao_localizavel` (CEP de outro município pode ser cadastro errado e o registro consta para SJC); `motivo_cep` e `confianca_cep` mantidos; saldo só anual (a RAIS de estabelecimentos não tem mês); saldo soma todos os `qtd_vinc_ativos`; Excel com uma aba por ano.
+- **Resultado (06 e 07, 16:17):** 99,2% dos registros com ponto; saldo 187.441 (2017) → 228.391 (2025); conferências OK. Ver `STATUS.md`.

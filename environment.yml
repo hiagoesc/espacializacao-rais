@@ -12,6 +12,7 @@ dependencies:
   - pyproj
   - pyarrow
   - openpyxl
+  - xlsxwriter
   - pyyaml
   - rapidfuzz
   - requests

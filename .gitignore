@@ -33,3 +33,6 @@ __pycache__/
 
 # --- IDE ---
 .idea/
+
+# --- Arquivos temporários do Excel (aparecem quando a planilha está aberta) ---
+~$*

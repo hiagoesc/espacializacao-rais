@@ -41,4 +41,4 @@ Todos os arquivos brutos ficam em `01_dados_brutos/` (fora do Git) e **não são
 ## APIs (etapa 04)
 
 - **ViaCEP** (`https://viacep.com.br/ws/<cep>/json/`): unidade, logradouro, número (`complemento`) e bairro do CEP. Gratuita, sem cadastro.
-- **BrasilAPI** (`https://brasilapi.com.br/api/cep/v2/<cep>`): coordenada aproximada (fonte open-cep). Usada só quando o CNEFE falha.
+- **BrasilAPI** (`https://brasilapi.com.br/api/cep/v2/<cep>`): endereço do CEP quando o ViaCEP não acha. A coordenada que ela devolve **não é usada** (pouco confiável).

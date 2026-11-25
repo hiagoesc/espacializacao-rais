@@ -1,6 +1,6 @@
 # Manual do Padrão de Projetos de Análise de Dados
 
-Versão 1.2 — 24/11/2026
+Versão 1.4 — 25/11/2026
 
 Padrão para os projetos de dados urbanos (espacialização de CNPJs, vazios urbanos, RAIS, registro de imóveis, Cadastro Único etc.). Serve para **criar projetos novos** e para **converter projetos existentes**. Inclua este arquivo (e o `docs/handoff/STATUS.md` do projeto) no início de cada conversa com o Claude.
 
@@ -78,6 +78,8 @@ Todos os projetos ficam em `D:\Users\hiago.cardoso\Documents\projetos_analise_de
 
 Um projeto sem curadoria manual mantém `02_dados_editados` vazia; a estrutura é sempre a mesma.
 
+**Pastas de dados no Git:** o Git não guarda pasta vazia. Por isso cada pasta de dados (`01` a `04`) leva um `LEIAME.md` (o que guarda e, na `01`, as subpastas esperadas), e o `.gitignore` ignora o conteúdo mas mantém o LEIAME (`01_dados_brutos/*` + `!01_dados_brutos/LEIAME.md`). Assim a estrutura existe ao clonar, sem dados. Ignorar a pasta inteira (`01_dados_brutos/`) impede a exceção: use `pasta/*`. Num computador novo, crie as subpastas da `01` e coloque os dados originais.
+
 **Fonte em banco de dados** (ex.: PostGIS da Prefeitura): o notebook não conecta no banco. A camada é exportada pelo QGIS (GeoPackage, todas as feições, CRS original) para `01_dados_brutos/<fonte>/`, e a data da exportação vai para `docs/fontes.md`. Para atualizar, exporta-se de novo com o mesmo nome.
 
 ---
@@ -109,6 +111,19 @@ Regra (função `fontes.caminho_editado`):
 3. Notebook que precisa **regravar** algo em `02_dados_editados` (ex.: cache de API) **faz backup antes** em `_backup/` e **preserva** linhas marcadas como manuais.
 
 O caminho de cada arquivo editado e da sua fonte original fica no `config.yaml` (seção `editados`).
+
+### 4.1 Cache de leitura (`src/cache.py`)
+
+Bases pesadas (ex.: os ~20 GB da Receita) são lidas uma vez e gravadas em `03_processamento/<notebook>/` como Parquet + manifesto (`.manifesto.json`). Na rodada seguinte, o notebook só relê o bruto se o cache **não valer**: ele vale quando os dois arquivos existem e são iguais ao momento da gravação os **arquivos de origem** (nome, tamanho e data de modificação), os **parâmetros** do `config.yaml` que afetam a leitura e a **versão da lógica** (`parametros.cache.versao_logica`; some 1 quando mudar o código da leitura). Tabela que depende de outra (ex.: empresas e Simples dependem dos CNPJs do estabelecimento) também é refeita quando a de origem muda.
+
+Avisos:
+
+- **Cache não substitui o bruto.** Os arquivos de `01_dados_brutos` precisam continuar na pasta: sem eles a lista de origem fica vazia, o cache não vale e o notebook tenta reler arquivos que não existem.
+- **Mover mantém a data; copiar pode mudar.** Se a data de modificação mudar, o notebook relê uma vez e regrava o cache.
+- **Atualizou a fonte?** Troque os arquivos em `01_dados_brutos/<fonte>/`; o cache é descartado sozinho e as tabelas dependentes são refeitas em cadeia.
+- **O log diz o motivo:** "Usando o cache" ou "Cache não usado (motivo)", por tabela.
+- **Forçar a releitura:** `parametros.cache.forcar_reprocessar` (ex.: `["df_lotes"]` ou `["todos"]`); para limitar a idade, `parametros.cache.idade_maxima_dias`.
+- **O cache é regenerável** (fica em `03_processamento`, fora do Git). O que **não** é regenerável (ex.: respostas de API) fica em `02_dados_editados/`, com backup, e não se apaga.
 
 ---
 
@@ -285,27 +300,39 @@ Nunca rodar de novo o notebook que **cria a versão inicial** de um editado espe
 ## 13. Git
 
 Vai para o Git: `scripts/`, `docs/`, `README.md`, `config.yaml`, `environment.yml`, `requirements.txt`, `.gitignore`, `executar_tudo.py`.
-**Nunca:** dados (`01`–`04`), entregas, logs, notebooks executados.
+**Nunca:** dados (`01`–`04`, exceto o `LEIAME.md` de cada pasta), entregas, logs, notebooks executados.
 
 `.gitignore` padrão:
 
 ```
-01_dados_brutos/
-02_dados_editados/
-03_processamento/
-04_entrega/
+01_dados_brutos/*
+02_dados_editados/*
+03_processamento/*
+04_entrega/*
+!01_dados_brutos/LEIAME.md
+!02_dados_editados/LEIAME.md
+!03_processamento/LEIAME.md
+!04_entrega/LEIAME.md
 *.gpkg
+*.gpkg-wal
+*.gpkg-shm
 *.parquet
 *.xlsx
+*.xls
 *.csv
 *.qgz
+*.qgs
 *.zip
 *.7z
+*.COMT
 *.txt
 !requirements.txt
 .ipynb_checkpoints/
 __pycache__/
+*.pyc
 .env
+.idea/
+~$*
 ```
 
 **Notebooks no Git sem saídas** (limpar as saídas antes do commit: *Kernel → Restart & Clear Output*), para não vazar dado em tabela impressa.
@@ -384,6 +411,7 @@ Atualizado em: AAAA-MM-DD
 ## 18. Checklist de projeto novo
 
 - [ ] Estrutura de pastas criada
+- [ ] `LEIAME.md` em cada pasta de dados (na `01`, com a lista das subpastas) e `.gitignore` com a exceção `!pasta/LEIAME.md`
 - [ ] `config.yaml` com caminhos e parâmetros
 - [ ] `scripts/src/` copiado do projeto mais recente
 - [ ] `environment.yml` e `requirements.txt`
